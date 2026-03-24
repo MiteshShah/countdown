@@ -233,6 +233,7 @@ import "C"
 import (
 	"fmt"
 	"math"
+	"os"
 	"runtime"
 	"time"
 	"unsafe"
@@ -244,8 +245,26 @@ func cfree(p *C.char)       { C.free(unsafe.Pointer(p)) }
 func main() {
 	runtime.LockOSThread()
 
-	targetDate, _ := time.Parse("2006-01-02", "2026-12-31")
-	target := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 23, 59, 59, 0, time.Local)
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: countdown <YYYY-MM-DD> [label]")
+		return
+	}
+
+	label := "Target"
+	if len(os.Args) >= 3 && os.Args[2] != "" {
+		label = os.Args[2]
+	}
+
+	targetDate, err := time.ParseInLocation("2006-01-02", os.Args[1], time.Local)
+	if err != nil {
+		fmt.Println("Invalid date. Use YYYY-MM-DD")
+		return
+	}
+
+	target := time.Date(
+		targetDate.Year(), targetDate.Month(), targetDate.Day(),
+		23, 59, 59, 0, time.Local,
+	)
 
 	C.initApp()
 
@@ -271,8 +290,20 @@ func main() {
 
 			pct := (H*3600 + M*60 + S) * 100 / 86400
 
-			title := fmt.Sprintf("⏳ %dd %02dh %02dm %02ds", d, h, m, s)
-			footer := fmt.Sprintf("⏳ %dd %02dh %02dm %02ds    TODAY USED %d%%", d, h, m, s, pct)
+			var title, footer string
+
+			if diff <= 0 {
+				title = "🎉 " + label
+				footer = fmt.Sprintf("🎉 %s — Done!    TODAY USED %d%%", label, pct)
+			} else {
+				title = fmt.Sprintf("⏳ %dd %02dh %02dm %02ds", d, h, m, s)
+				footer = fmt.Sprintf(
+					"⏳ %dd %02dh %02dm %02ds · %s · TODAY %d%%",
+					d, h, m, s,
+					label,
+					pct,
+				)
+			}
 
 			t := cstr(title)
 			f := cstr(footer)
