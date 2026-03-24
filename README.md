@@ -1,5 +1,7 @@
 # ⏳ Countdown Menubar
 
+<img width="1010" height="728" alt="image" src="https://github.com/user-attachments/assets/d7df7bdb-4616-420f-8cda-c0955421c18b" />
+
 A native macOS menubar app written in **Go + CGo + Cocoa**.  
 No external Go packages. No Python. No Electron.
 
